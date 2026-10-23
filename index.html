@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Xbox Virtual Gamepad</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body oncontextmenu="return false;">
+
+  <!-- Peringatan jika pengguna belum memutar layar ke Landscape -->
+  <div id="rotate-prompt" class="rotate-overlay">
+    <div class="rotate-content">
+      <svg class="rotate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+        <path d="M12 18h.01"></path>
+        <path d="M18 10l3-3-3-3"></path>
+        <path d="M21 7H15"></path>
+      </svg>
+      <h2>Putar Perangkat ke Posisi Landscape</h2>
+      <p>Gamepad Virtual dioptimalkan khusus untuk layar penuh horizontal.</p>
+      <button id="btn-force-fullscreen" class="sys-btn">Aktifkan Layar Penuh</button>
+    </div>
+  </div>
+
+  <!-- Kontainer Utama Gamepad -->
+  <main id="gamepad-container" class="gamepad">
+
+    <!-- Tombol Bumper & Trigger Atas (Shoulder Buttons) -->
+    <header class="shoulder-bar">
+      <!-- Sisi Kiri Atas: LT & LB -->
+      <div class="shoulder-group left-shoulders">
+        <div id="btn-lt" class="shoulder-btn trigger-btn" data-input="lt">
+          <div class="trigger-fill" id="lt-fill"></div>
+          <span class="btn-label">LT</span>
+          <span class="trigger-val" id="lt-val">0%</span>
+        </div>
+        <div id="btn-lb" class="shoulder-btn bumper-btn" data-input="lb">
+          <span class="btn-label">LB</span>
+        </div>
+      </div>
+
+      <!-- Area Atas Tengah: Status Singkat & Tombol Sistem -->
+      <div class="top-controls">
+        <button id="toggle-telemetry" class="hud-pill-btn" title="Toggle Monitor Input">
+          <span class="dot-indicator"></span> HUD
+        </button>
+        <button id="toggle-vibrate" class="hud-pill-btn active" title="Toggle Getaran Haptic">
+          <span id="vibrate-icon">⚡ Getar: ON</span>
+        </button>
+        <button id="btn-fullscreen" class="hud-pill-btn" title="Layar Penuh">
+          <span>⛶ Layar Penuh</span>
+        </button>
+      </div>
+
+      <!-- Sisi Kanan Atas: RB & RT -->
+      <div class="shoulder-group right-shoulders">
+        <div id="btn-rb" class="shoulder-btn bumper-btn" data-input="rb">
+          <span class="btn-label">RB</span>
+        </div>
+        <div id="btn-rt" class="shoulder-btn trigger-btn" data-input="rt">
+          <div class="trigger-fill" id="rt-fill"></div>
+          <span class="btn-label">RT</span>
+          <span class="trigger-val" id="rt-val">0%</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Badan Kontroler Utama (Grip Kiri, Tengah, Grip Kanan) -->
+    <div class="controller-body">
+
+      <!-- ================= SISI KIRI ================= -->
+      <section class="control-zone zone-left">
+        <!-- Analog Kiri (L3) - Khas Xbox Posisi Atas -->
+        <div class="joystick-wrapper" id="left-stick-zone">
+          <div class="joystick-base" id="lstick-base">
+            <div class="joystick-ring"></div>
+            <div class="joystick-thumb" id="lstick-thumb" data-input="l3">
+              <div class="thumb-grip"></div>
+              <div class="thumb-core"><span class="thumb-label">L3</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D-Pad (Arah Panah Segi Delapan Xbox) - Khas Xbox Posisi Bawah -->
+        <div class="dpad-wrapper" id="dpad-zone">
+          <div class="dpad-base">
+            <button id="btn-du" class="dpad-btn dpad-up" data-input="dpadUp" aria-label="D-Pad Atas">
+              <span class="dpad-arrow">▲</span>
+            </button>
+            <button id="btn-dr" class="dpad-btn dpad-right" data-input="dpadRight" aria-label="D-Pad Kanan">
+              <span class="dpad-arrow">▶</span>
+            </button>
+            <button id="btn-dd" class="dpad-btn dpad-down" data-input="dpadDown" aria-label="D-Pad Bawah">
+              <span class="dpad-arrow">▼</span>
+            </button>
+            <button id="btn-dl" class="dpad-btn dpad-left" data-input="dpadLeft" aria-label="D-Pad Kiri">
+              <span class="dpad-arrow">◀</span>
+            </button>
+            <div class="dpad-center"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SISI TENGAH ================= -->
+      <section class="control-zone zone-center">
+        <!-- Tombol Xbox Guide / Home Bercahaya -->
+        <div class="xbox-guide-container">
+          <button id="btn-xbox" class="btn-xbox-guide" data-input="xbox" aria-label="Xbox Home Button">
+            <svg class="xbox-logo-svg" viewBox="0 0 100 100">
+              <!-- Ikon Logo Xbox X Vektor Murni - Robot White -->
+              <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#cbd5e1" stroke-width="2.5"/>
+              <path d="M 50 16 C 36 16 23 22 15 31 C 28 44 42 66 50 82 C 58 66 72 44 85 31 C 77 22 64 16 50 16 Z" fill="#0f172a" opacity="0.95"/>
+              <path d="M 12 36 C 7 45 6 56 9 66 C 18 58 32 49 43 45 C 31 40 21 37 12 36 Z" fill="#0f172a" opacity="0.95"/>
+              <path d="M 88 36 C 79 37 69 40 57 45 C 68 49 82 58 91 66 C 94 56 93 45 88 36 Z" fill="#0f172a" opacity="0.95"/>
+            </svg>
+            <div class="guide-glow"></div>
+          </button>
+        </div>
+
+        <!-- Tombol Navigasi Tengah: View (Select), Share, Menu (Start) -->
+        <div class="center-buttons-row">
+          <!-- View / Back (Ikon Dua Jendela Kotak) -->
+          <button id="btn-view" class="aux-btn" data-input="view" aria-label="View / Back Button">
+            <svg class="aux-icon" viewBox="0 0 24 24">
+              <rect x="3" y="7" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+              <rect x="10" y="3" width="11" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="aux-label">VIEW</span>
+          </button>
+
+          <!-- Share Button (Xbox Series) -->
+          <button id="btn-share" class="aux-btn aux-share" data-input="share" aria-label="Share Button">
+            <svg class="aux-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+            </svg>
+          </button>
+
+          <!-- Menu / Start (Ikon Tiga Garis Hamburger) -->
+          <button id="btn-menu" class="aux-btn" data-input="menu" aria-label="Menu / Start Button">
+            <svg class="aux-icon" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="4" y1="7" x2="20" y2="7"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+              <line x1="4" y1="17" x2="20" y2="17"/>
+            </svg>
+            <span class="aux-label">MENU</span>
+          </button>
+        </div>
+
+        <!-- Panel Telemetri Realtime / Monitor State Input (Dapat di-toggle) -->
+        <div id="telemetry-panel" class="telemetry-box hidden">
+          <div class="telemetry-header">
+            <span>TELEMETRI INPUT</span>
+            <span id="hud-fps" class="badge">60 FPS</span>
+          </div>
+          <div class="telemetry-grid">
+            <div class="telemetry-col">
+              <small>L-Stick:</small>
+              <span id="tel-ls">X: 0.00 | Y: 0.00</span>
+            </div>
+            <div class="telemetry-col">
+              <small>R-Stick:</small>
+              <span id="tel-rs">X: 0.00 | Y: 0.00</span>
+            </div>
+            <div class="telemetry-col">
+              <small>Triggers:</small>
+              <span id="tel-tr">LT: 0.00 | RT: 0.00</span>
+            </div>
+            <div class="telemetry-col">
+              <small>Active Touch:</small>
+              <span id="tel-touch">0 Titik</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SISI KANAN ================= -->
+      <section class="control-zone zone-right">
+        <!-- Tombol Aksi ABXY Diamond Khas Xbox (A: Hijau, B: Merah, X: Biru, Y: Kuning) -->
+        <div class="abxy-cluster" id="abxy-zone">
+          <button id="btn-y" class="action-btn btn-y" data-input="y" aria-label="Tombol Y">
+            <span class="action-letter">Y</span>
+          </button>
+          <div class="abxy-middle-row">
+            <button id="btn-x" class="action-btn btn-x" data-input="x" aria-label="Tombol X">
+              <span class="action-letter">X</span>
+            </button>
+            <button id="btn-b" class="action-btn btn-b" data-input="b" aria-label="Tombol B">
+              <span class="action-letter">B</span>
+            </button>
+          </div>
+          <button id="btn-a" class="action-btn btn-a" data-input="a" aria-label="Tombol A">
+            <span class="action-letter">A</span>
+          </button>
+        </div>
+
+        <!-- Analog Kanan (R3) - Khas Xbox Posisi Bawah -->
+        <div class="joystick-wrapper" id="right-stick-zone">
+          <div class="joystick-base" id="rstick-base">
+            <div class="joystick-ring"></div>
+            <div class="joystick-thumb" id="rstick-thumb" data-input="r3">
+              <div class="thumb-grip"></div>
+              <div class="thumb-core"><span class="thumb-label">R3</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Xbox Virtual Gamepad",
+  "description": "Gamepad Virtual presisi tinggi bertema kontroler Xbox dengan dukungan multitouch, analog ganda, getaran haptik, dan performa ultra ringan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

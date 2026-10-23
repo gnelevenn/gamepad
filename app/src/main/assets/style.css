@@ -1,0 +1,753 @@
+/* ==========================================================================
+   XBOX VIRTUAL GAMEPAD - ROBOT WHITE EDITION (FROSTED GLASS)
+   Dioptimalkan untuk Perangkat Android Low-End (RAM 2GB, CPU Entry-Level)
+   - Tampilan Elegan Xbox Robot White dengan Latar Belakang Frosted Glass Blur
+   - GPU Hardware Acceleration via transform3d & will-change
+   - No Reflow / Layout Repaint pada interaksi sentuhan
+   ========================================================================== */
+
+:root {
+  /* Palet Robot White & Frosted Glass */
+  --bg-page: #0f172a;
+  --bg-controller-glass: rgba(248, 250, 252, 0.78);
+  --bg-card-glass: rgba(255, 255, 255, 0.85);
+  --bg-surface-elevated: #ffffff;
+  --border-glass: rgba(255, 255, 255, 0.6);
+  --border-subtle: rgba(203, 213, 225, 0.7);
+
+  /* Teks & Kontras */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Warna Khas Xbox */
+  --xbox-green: #107C10;
+  --xbox-green-glow: #159a15;
+  --xbox-dark: #0f172a;
+
+  /* Warna Tombol Aksi ABXY Khas Xbox */
+  --btn-a-color: #059669; /* Emerald Green */
+  --btn-b-color: #dc2626; /* Crimson Red */
+  --btn-x-color: #2563eb; /* Royal Blue */
+  --btn-y-color: #d97706; /* Amber Yellow */
+
+  /* Dimensi & Grid Responsif */
+  --stick-size: 130px;
+  --thumb-size: 74px;
+  --dpad-size: 130px;
+  --abxy-size: 52px;
+  --shoulder-height: 52px;
+}
+
+/* Reset Global & Pencegahan Gestur Bawaan Android */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  touch-action: none !important;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--text-primary);
+  overscroll-behavior: none;
+}
+
+/* Background dengan Efek Gradien Lembut & Ambient Blur */
+body::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(16, 124, 16, 0.35) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(37, 99, 235, 0.30) 0%, transparent 45%),
+    radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.25) 0%, transparent 50%),
+    linear-gradient(135deg, #090d16 0%, #1e293b 50%, #0f172a 100%);
+  filter: blur(28px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Layar Peringatan Rotasi Jika Posisi Layar Masih Portrait */
+.rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(248, 250, 252, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.rotate-content {
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.rotate-icon {
+  width: 64px;
+  height: 64px;
+  stroke: var(--xbox-green);
+  animation: rotatePrompt 2s ease-in-out infinite;
+}
+
+@keyframes rotatePrompt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+
+.rotate-overlay h2 {
+  font-size: 1.25rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.rotate-overlay p {
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.sys-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background: var(--xbox-green);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@media screen and (orientation: portrait) {
+  .rotate-overlay {
+    display: flex;
+  }
+}
+
+/* ==========================================================================
+   KONTAINER UTAMA GAMEPAD (FROSTED GLASS BLUR)
+   ========================================================================== */
+.gamepad {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-controller-glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-glass);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 20px 40px rgba(0, 0, 0, 0.25);
+  padding: env(safe-area-inset-top, 6px) env(safe-area-inset-right, 14px) env(safe-area-inset-bottom, 6px) env(safe-area-inset-left, 14px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   SHOULDER BUTTONS (LT, LB, RB, RT) - ROBOT WHITE
+   ========================================================================== */
+.shoulder-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: var(--shoulder-height);
+  padding: 4px 8px;
+  z-index: 10;
+}
+
+.shoulder-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shoulder-btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08), inset 0 1px 2px #ffffff;
+  cursor: pointer;
+  will-change: transform, opacity;
+  transition: transform 0.05s ease, background 0.05s ease;
+}
+
+.shoulder-btn:active, .shoulder-btn.active {
+  transform: translate3d(0, 2px, 0) scale(0.96);
+  background: #e2e8f0;
+  border-color: var(--xbox-green);
+  box-shadow: 0 0 10px rgba(16, 124, 16, 0.4);
+}
+
+.bumper-btn {
+  width: 74px;
+  height: 40px;
+}
+
+.trigger-btn {
+  width: 88px;
+  height: 42px;
+}
+
+.trigger-btn .btn-label {
+  position: relative;
+  z-index: 2;
+}
+
+.trigger-val {
+  position: absolute;
+  bottom: 2px;
+  right: 6px;
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  z-index: 2;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.trigger-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(16, 124, 16, 0.3), rgba(16, 124, 16, 0.75));
+  z-index: 1;
+  pointer-events: none;
+  will-change: width;
+}
+
+/* Kontrol Atas / Toolbar HUD */
+.top-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hud-pill-btn {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 20px;
+  padding: 5px 12px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.hud-pill-btn.active {
+  color: var(--xbox-green);
+  border-color: var(--xbox-green);
+  background: #ffffff;
+}
+
+.dot-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.hud-pill-btn.active .dot-indicator {
+  background: var(--xbox-green);
+  box-shadow: 0 0 6px var(--xbox-green);
+}
+
+/* ==========================================================================
+   BADAN KONTROLER (3 ZONA: KIRI, TENGAH, KANAN)
+   ========================================================================== */
+.controller-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.15fr 0.9fr 1.15fr;
+  align-items: center;
+  width: 100%;
+  height: calc(100% - var(--shoulder-height));
+  position: relative;
+}
+
+.control-zone {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 4px;
+  position: relative;
+}
+
+/* ==========================================================================
+   ANALOG JOYSTICK VIRTUAL (L3 & R3) - ROBOT WHITE
+   ========================================================================== */
+.joystick-wrapper {
+  width: var(--stick-size);
+  height: var(--stick-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.joystick-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #f1f5f9 40%, #e2e8f0 85%, #cbd5e1 100%);
+  border: 2px solid #cbd5e1;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.joystick-ring {
+  position: absolute;
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  border: 1px dashed rgba(100, 116, 139, 0.35);
+  pointer-events: none;
+}
+
+.joystick-thumb {
+  position: absolute;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ffffff 0%, #f1f5f9 65%, #e2e8f0 100%);
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15), inset 0 2px 4px #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+  transform: translate3d(0px, 0px, 0px);
+  cursor: grab;
+}
+
+.joystick-thumb:active, .joystick-thumb.active {
+  border-color: var(--xbox-green);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 0 12px rgba(16, 124, 16, 0.5);
+}
+
+.thumb-grip {
+  width: 76%;
+  height: 76%;
+  border-radius: 50%;
+  border: 2px dotted rgba(100, 116, 139, 0.4);
+  position: absolute;
+  pointer-events: none;
+}
+
+.thumb-core {
+  width: 44%;
+  height: 44%;
+  border-radius: 50%;
+  background: #e2e8f0;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumb-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #475569;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   D-PAD DIRECTIONAL HYBRID - ROBOT WHITE
+   ========================================================================== */
+.dpad-wrapper {
+  width: var(--dpad-size);
+  height: var(--dpad-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad-base {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 35%, #f1f5f9 80%, #e2e8f0 100%);
+  border: 2px solid #cbd5e1;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.08), 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.dpad-btn {
+  position: absolute;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  will-change: transform, background;
+}
+
+.dpad-up {
+  top: 4px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 38px;
+  height: 42px;
+  border-radius: 8px 8px 3px 3px;
+}
+
+.dpad-down {
+  bottom: 4px;
+  left: 50%;
+  transform: translate3d(-50%, 0, 0);
+  width: 38px;
+  height: 42px;
+  border-radius: 3px 3px 8px 8px;
+}
+
+.dpad-left {
+  left: 4px;
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+  width: 42px;
+  height: 38px;
+  border-radius: 8px 3px 3px 8px;
+}
+
+.dpad-right {
+  right: 4px;
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+  width: 42px;
+  height: 38px;
+  border-radius: 3px 8px 8px 3px;
+}
+
+.dpad-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  width: 38px;
+  height: 38px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dpad-btn:active, .dpad-btn.active {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: var(--xbox-green);
+  box-shadow: inset 0 0 8px rgba(16, 124, 16, 0.4);
+}
+
+.dpad-up:active, .dpad-up.active { transform: translate3d(-50%, 2px, 0); }
+.dpad-down:active, .dpad-down.active { transform: translate3d(-50%, -2px, 0); }
+.dpad-left:active, .dpad-left.active { transform: translate3d(2px, -50%, 0); }
+.dpad-right:active, .dpad-right.active { transform: translate3d(-2px, -50%, 0); }
+
+/* ==========================================================================
+   AREA TENGAH (XBOX GUIDE, VIEW, SHARE, MENU) - ROBOT WHITE
+   ========================================================================== */
+.zone-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.xbox-guide-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-xbox-guide {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.xbox-logo-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
+}
+
+.guide-glow {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(16, 124, 16, 0.5);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-xbox-guide:active .guide-glow,
+.btn-xbox-guide.active .guide-glow {
+  opacity: 1;
+  box-shadow: 0 0 28px rgba(16, 124, 16, 0.9), 0 0 10px #ffffff;
+}
+
+.btn-xbox-guide:active, .btn-xbox-guide.active {
+  transform: translate3d(0, 1px, 0) scale(0.96);
+}
+
+.center-buttons-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.aux-btn {
+  width: 44px;
+  height: 38px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #334155;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  will-change: transform;
+}
+
+.aux-share {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.aux-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.aux-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.aux-btn:active, .aux-btn.active {
+  transform: translate3d(0, 2px, 0) scale(0.94);
+  background: #f1f5f9;
+  border-color: var(--xbox-green);
+  color: var(--xbox-green);
+}
+
+/* Panel Telemetri Realtime */
+.telemetry-box {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  border-radius: 10px;
+  padding: 8px 12px;
+  width: 95%;
+  max-width: 280px;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.telemetry-box.hidden {
+  display: none;
+}
+
+.telemetry-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #475569;
+  border-bottom: 1px solid rgba(203, 213, 225, 0.6);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.badge {
+  color: var(--xbox-green);
+  font-family: monospace;
+  font-weight: 800;
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-family: monospace;
+}
+
+.telemetry-col small {
+  display: block;
+  color: #64748b;
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.telemetry-col span {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   TOMBOL AKSI ABXY DIAMOND (TOMBOL PUTIH ELEGAN DENGAN HURUF WARNA KHAS XBOX)
+   ========================================================================== */
+.abxy-cluster {
+  width: 154px;
+  height: 154px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin-top: -8px;
+}
+
+.abxy-middle-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-btn {
+  width: var(--abxy-size);
+  height: var(--abxy-size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #f8fafc 60%, #e2e8f0 100%);
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), inset 0 2px 4px #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  will-change: transform, box-shadow;
+  transition: transform 0.05s ease;
+}
+
+.action-letter {
+  font-size: 1.3rem;
+  font-weight: 900;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.5px;
+  pointer-events: none;
+}
+
+/* Pewarnaan Huruf A, B, X, Y Khas Xbox pada Bodi Putih */
+.btn-a .action-letter { color: var(--btn-a-color); text-shadow: 0 1px 2px rgba(5, 150, 105, 0.3); }
+.btn-b .action-letter { color: var(--btn-b-color); text-shadow: 0 1px 2px rgba(220, 38, 38, 0.3); }
+.btn-x .action-letter { color: var(--btn-x-color); text-shadow: 0 1px 2px rgba(37, 99, 235, 0.3); }
+.btn-y .action-letter { color: var(--btn-y-color); text-shadow: 0 1px 2px rgba(217, 119, 6, 0.3); }
+
+.btn-a:active, .btn-a.active {
+  transform: translate3d(0, 2px, 0) scale(0.94);
+  border-color: var(--btn-a-color);
+  box-shadow: 0 0 16px rgba(5, 150, 105, 0.5);
+  background: #ecfdf5;
+}
+
+.btn-b:active, .btn-b.active {
+  transform: translate3d(0, 2px, 0) scale(0.94);
+  border-color: var(--btn-b-color);
+  box-shadow: 0 0 16px rgba(220, 38, 38, 0.5);
+  background: #fef2f2;
+}
+
+.btn-x:active, .btn-x.active {
+  transform: translate3d(0, 2px, 0) scale(0.94);
+  border-color: var(--btn-x-color);
+  box-shadow: 0 0 16px rgba(37, 99, 235, 0.5);
+  background: #eff6ff;
+}
+
+.btn-y:active, .btn-y.active {
+  transform: translate3d(0, 2px, 0) scale(0.94);
+  border-color: var(--btn-y-color);
+  box-shadow: 0 0 16px rgba(217, 119, 6, 0.5);
+  background: #fffbeb;
+}
+
+/* ==========================================================================
+   PENYESUAIAN RESPONSIF (LAYAR KECIL / TABLET LANDSCAPE)
+   ========================================================================== */
+@media screen and (max-height: 400px) {
+  :root {
+    --stick-size: 110px;
+    --thumb-size: 60px;
+    --dpad-size: 110px;
+    --abxy-size: 44px;
+    --shoulder-height: 44px;
+  }
+  .bumper-btn { width: 64px; height: 34px; }
+  .trigger-btn { width: 76px; height: 36px; }
+  .btn-xbox-guide { width: 50px; height: 50px; }
+}
+
+@media screen and (min-width: 900px) {
+  :root {
+    --stick-size: 150px;
+    --thumb-size: 84px;
+    --dpad-size: 150px;
+    --abxy-size: 60px;
+  }
+}
